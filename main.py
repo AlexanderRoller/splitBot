@@ -92,7 +92,7 @@ async def spread(ctx, ticker: str, strike_price: float, expiration_date: str, op
 @bot.command(name='rsa', help='Calculates the profitability of reverse split arbitrage.')
 async def rsa(ctx, ticker: str, split_ratio: str):
     try:
-        response = calculate_reverse_split_arbitrage(ticker, split_ratio)
+        response = calculate_reverse_split_arbitrage(ticker, split_ratio, client)
         await ctx.send(response)
     except Exception as e:
         await ctx.send(f"Error calculating reverse split arbitrage: {str(e)}")
