@@ -1,26 +1,31 @@
-import yfinance as yf
+import schwabdev
+import json
 
-def get_stock_price(ticker: str):
-    stock = yf.Ticker(ticker)
-    stock_info = stock.info
-
-    current_price = stock_info.get('currentPrice', stock_info.get('previousClose'))
-    previous_close = stock_info.get('previousClose', None)
-
-    if current_price and previous_close:
-        day_change = ((current_price - previous_close) / previous_close) * 100
-        day_change_str = f"{day_change:.2f}%"
+def get_stock_price(ticker: str, client):
+    # Retrieve and parse the JSON data for the given ticker
+    data = client.quote(ticker).json()
+    ticker_key = ticker.upper()  # Ensure the ticker key matches the data (e.g., "AAPL")
+    
+    # Optionally, save the raw data to a JSON file 
+    # with open(f"data_{ticker_key}.json", "w") as file:
+    #     json.dump(data, file, indent=4)
+    
+    # Check if data exists and the expected ticker key is present
+    if data and ticker_key in data:
+        # Access the "quote" dictionary within the ticker's data
+        quote_data = data[ticker_key].get("quote", {})
+        # Extract the lastPrice value from the quote data
+        last_price = quote_data.get("lastPrice")
+        
+        if last_price is not None:
+            response = (
+                f"💹 **Current Price of {ticker_key}** 💹\n"
+                f"💲 **Price:** **${last_price:.2f}**\n"
+                "Keep an eye on the market! 📈"
+            )
+        else:
+            response = f"❌ Could not retrieve the last price for ticker **{ticker_key}**."
     else:
-        day_change_str = "Unavailable"
-
-    if current_price:
-        response = (
-            f"💹 **Current Price of {ticker.upper()}** 💹\n"
-            f"💲 **Price:** **${current_price:.2f}**\n"
-            f"📊 **Day Change:** {day_change_str}\n"
-            f"Keep an eye on the market! 📈"
-        )
-    else:
-        response = f"❌ Could not retrieve the price for ticker **{ticker.upper()}**."
-
+        response = f"❌ Could not retrieve data for ticker **{ticker_key}**."
+    
     return response

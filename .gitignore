@@ -2,3 +2,5 @@
 /__pycache__
 .venv
 commands/__pycache__
+data*
+tokens*

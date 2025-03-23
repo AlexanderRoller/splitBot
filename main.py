@@ -2,6 +2,8 @@ import discord
 import os
 from discord.ext import tasks, commands
 from dotenv import load_dotenv
+import schwabdev
+import json
 
 # load custom commands
 from commands.price import get_stock_price
@@ -23,6 +25,10 @@ CHANNEL_ID = int(os.getenv('CHANNEL_ID'))
 OCC_RSS_URL = os.getenv('RSS_URL')
 SEC_RSS_URL = os.getenv('SEC_RSS_URL')
 
+#connect to schwab api
+load_dotenv()
+client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'))
+
 # Define the intents
 intents = discord.Intents.default()
 intents.messages = True
@@ -43,7 +49,7 @@ async def on_ready():
 @bot.command(name='price', help='Gets the current or most recent price of a specified stock ticker.')
 async def fetch_stock_price(ctx, ticker: str):
     try:
-        response = get_stock_price(ticker)
+        response = get_stock_price(ticker, client)
         await ctx.send(response)
     except Exception as e:
         await ctx.send(f"Error fetching stock price: {str(e)}")
