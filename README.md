@@ -84,7 +84,7 @@ If `WEEKLY_SUMMARY_CHANNEL_ID` is set, it also posts a weekly economic calendar 
 Here are the available commands you can use with the bot:
 
 - **`!price [ticker]`**
-  - **Description**: Fetch the current or most recent stock price for the specified ticker symbol.
+  - **Description**: Fetch the current or most recent stock price plus the daily change in dollars and percent.
   - **Example**: `!price AAPL`
 
 - **`!rsa [ticker] [split ratio]`**
