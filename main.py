@@ -11,7 +11,7 @@ from commands.formatting import format_error, format_response
 from commands.health import get_server_status
 from commands.help_data import (
     build_command_help_lines,
-    build_help_overview_lines,
+    build_instructions_message,
     normalize_help_command_name,
 )
 from commands.post import (
@@ -73,10 +73,7 @@ async def help_command(ctx, *, command_name: str = ""):
     no_mentions = discord.AllowedMentions.none()
 
     if not normalized_name:
-        await ctx.send(
-            format_response("Help", build_help_overview_lines()),
-            allowed_mentions=no_mentions,
-        )
+        await ctx.send(build_instructions_message(), allowed_mentions=no_mentions)
         return
 
     resolved_name, lines = build_command_help_lines(normalized_name)
@@ -111,7 +108,7 @@ async def health(ctx):
         await _send_command_error(ctx, "Health Check")
 
 
-@bot.command(name="rsa", help="Calculates the profitability of reverse split arbitrage.")
+@bot.command(name="rsa", help="Calculates reverse split arbitrage profitability. Ratio format: small:big (example: 1:10).")
 async def rsa(ctx, ticker: str, split_ratio: str):
     try:
         response = await asyncio.to_thread(calculate_reverse_split_arbitrage, ticker, split_ratio)

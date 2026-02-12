@@ -14,8 +14,11 @@ def _parse_split_ratio(split_ratio: str):
         raise ZeroDivisionError
     if numerator <= 0 or denominator <= 0:
         raise ValueError
+    if numerator >= denominator:
+        raise ValueError
 
-    return numerator / denominator
+    # Reverse split ratios are expected in small:big format (e.g., 1:10).
+    return denominator / numerator
 
 
 def calculate_reverse_split_arbitrage(ticker: str, split_ratio: str):
@@ -38,7 +41,7 @@ def calculate_reverse_split_arbitrage(ticker: str, split_ratio: str):
     except ValueError:
         return format_error(
             "Reverse Split Arbitrage",
-            "Invalid split ratio format. Use 'numerator:denominator' with positive numbers.",
+            "Invalid split ratio format. Use 'small:big' with positive numbers (example: 1:10).",
         )
 
     profitability = float(current_price) * (split_ratio_value - 1)

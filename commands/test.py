@@ -14,7 +14,7 @@ async def test_all(ctx):
     Test all bot commands with sample inputs.
     """
     test_ticker = "AAPL"
-    test_split_ratio = "2:1"
+    test_split_ratio = "1:10"
 
     stock_price_response = (await asyncio.to_thread(get_stock_price, test_ticker)).replace(
         f"**Price for {test_ticker}**",

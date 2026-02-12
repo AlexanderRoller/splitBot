@@ -54,9 +54,12 @@ HELP_COMMANDS = {
     "rsa": {
         "usage": "!rsa <ticker> <split_ratio>",
         "description": "Estimates profitability of a reverse split arbitrage setup.",
+        "details": [
+            "Split ratio format must be small:big (example: `1:10`).",
+        ],
         "examples": [
-            "!rsa AAPL 2:1",
-            "!rsa TSLA 5:1",
+            "!rsa AAPL 1:10",
+            "!rsa TSLA 1:5",
         ],
     },
     "health": {
@@ -90,13 +93,46 @@ def normalize_help_command_name(value):
     return key
 
 
-def build_help_overview_lines():
-    lines = ["Use `!help <command>` for full usage and examples."]
-    for command_name in HELP_ORDER:
-        command_help = HELP_COMMANDS[command_name]
-        lines.append(f"`{command_help['usage']}` - {command_help['description']}")
-        lines.append(f"Example: `{command_help['examples'][0]}`")
-    return lines
+def build_instructions_message():
+    return (
+        "🚀 Welcome to the Burry Deez Bot! 🚀\n\n"
+        "Stay on top of stocks with quick lookups, reverse split arbitrage estimates, chart snapshots, "
+        "and moderator tools for split alerts.\n\n"
+        "### 💼 **Commands:**\n\n"
+        "1. **`!help [command]`**\n"
+        "   - Shows usage and examples for all commands or a specific command.\n"
+        "   - Example: `!help post`\n\n"
+        "2. **`!price [ticker]`**\n"
+        "   - Fetches the latest available stock price and daily change.\n"
+        "   - Example: `!price AAPL`\n\n"
+        "3. **`!chart [ticker] [period]`**\n"
+        "   - Sends a dark mode stock chart image (default period: `1d`).\n"
+        "   - Example: `!chart TSLA 6mo`\n\n"
+        "4. **`!rsa [ticker] [split ratio]`**\n"
+        "   - Estimates reverse split arbitrage profitability.\n"
+        "   - Ratio format: small:big (example: `1:10`).\n"
+        "   - Example: `!rsa AAPL 1:10`\n\n"
+        "5. **`!post [ticker] [split ratio] [last day to buy] [source link]`**\n"
+        "   - Creates a reverse split channel and posts an `@everyone` announcement.\n"
+        "   - Restricted to users with the configured moderator role ID.\n"
+        "   - Example: `!post AAPL 1:10 2026-02-20 https://example.com/source`\n\n"
+        "6. **`!health`**\n"
+        "   - Shows server health (CPU, memory, disk, uptime, temp if available).\n"
+        "   - Example: `!health`\n\n"
+        "7. **`!usercount`**\n"
+        "   - Shows the total number of members in the server.\n"
+        "   - Example: `!usercount`\n\n"
+        "8. **`!test_all`**\n"
+        "   - Runs sample checks for key bot commands.\n"
+        "   - Example: `!test_all`\n\n"
+        "---\n\n"
+        "### 🔔 **Automatic Posts:**\n\n"
+        "- No scheduled automatic posts are enabled.\n"
+        "- Use `!post` to create reverse split announcement channels on demand.\n\n"
+        "**Burry Deez Bot is open-source!**\n"
+        "Check out the repository and contribute here:\n"
+        "**[Burry Deez GitHub](https://github.com/AlexanderRoller/BurryDeez)**"
+    )
 
 
 def build_command_help_lines(command_name):

@@ -4,7 +4,7 @@ from commands.help_data import (
     HELP_COMMANDS,
     HELP_ORDER,
     build_command_help_lines,
-    build_help_overview_lines,
+    build_instructions_message,
     normalize_help_command_name,
 )
 
@@ -20,10 +20,13 @@ class HelpDataTests(unittest.TestCase):
         self.assertEqual(normalize_help_command_name("!chart"), "chart")
         self.assertEqual(normalize_help_command_name("  !PoSt  "), "post")
 
-    def test_build_help_overview_lines_contains_examples(self):
-        lines = build_help_overview_lines()
-        self.assertTrue(any(line.startswith("Example: `!") for line in lines))
-        self.assertTrue(any("!help [command]" in line for line in lines))
+    def test_build_instructions_message_contains_examples(self):
+        message = build_instructions_message()
+        self.assertIn("Welcome to the Burry Deez Bot", message)
+        self.assertIn("!help [command]", message)
+        self.assertIn("!chart TSLA 6mo", message)
+        self.assertIn("Burry Deez GitHub", message)
+        self.assertNotIn("!calendar", message)
 
     def test_build_command_help_lines_for_valid_command(self):
         name, lines = build_command_help_lines("chart")
