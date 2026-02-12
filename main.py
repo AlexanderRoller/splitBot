@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
+from commands.chart import generate_stock_chart
 from commands.formatting import format_error, format_response
 from commands.health import get_server_status
 from commands.price import get_stock_price
@@ -66,6 +67,30 @@ async def rsa(ctx, ticker: str, split_ratio: str):
         await ctx.send(response)
     except Exception:
         await _send_command_error(ctx, "Reverse Split Arbitrage")
+
+
+@bot.command(
+    name="chart",
+    help="Sends a dark mode stock chart. Usage: !chart [ticker] [period]. Default period is 1d. Periods: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, max.",
+)
+async def chart(ctx, ticker: str, period: str = "1d"):
+    chart_stream = None
+    try:
+        chart_stream, filename, caption, error_message = await asyncio.to_thread(
+            generate_stock_chart,
+            ticker,
+            period,
+        )
+        if error_message:
+            await ctx.send(error_message)
+            return
+
+        await ctx.send(content=caption, file=discord.File(fp=chart_stream, filename=filename))
+    except Exception:
+        await _send_command_error(ctx, "Chart")
+    finally:
+        if chart_stream is not None:
+            chart_stream.close()
 
 
 @bot.command(name="test_all", help="Tests all bot commands with sample inputs.")

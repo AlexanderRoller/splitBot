@@ -1,10 +1,11 @@
 # BurryDeez Discord Bot
 
-This Discord bot provides lightweight financial utilities to help users stay informed about the stock market. It offers live stock price lookups, reverse split arbitrage estimates, server health insights, and a quick user count command.
+This Discord bot provides lightweight financial utilities to help users stay informed about the stock market. It offers live stock price lookups, dark mode stock charts, reverse split arbitrage estimates, server health insights, and a quick user count command.
 
 ## Features
 
 - **📈 Live Stock Price Fetching**: Retrieve the most up-to-date stock prices during market hours, or the last available price after hours using the `yfinance` API.
+- **📉 Dark Mode Stock Charts**: Generate and post dark-themed stock charts directly in Discord.
 - **🔁 Reverse Split Arbitrage**: Estimate profitability based on a specified reverse split ratio and the latest market price.
 - **🖥️ Server Health Monitoring**: Track CPU usage, memory usage, disk usage, uptime, and component temperatures.
 - **👥 User Count**: Return the number of users currently in the Discord server.
@@ -22,6 +23,7 @@ Before using the bot, ensure you have the following installed:
   - `yfinance`: Fetch market prices from a free data source.
   - `psutil`: Monitor system performance for server health checks.
   - `python-dotenv`: Load environment variables from the `.env` file.
+  - `matplotlib`: Render stock charts as images.
 
 ---
 
@@ -72,6 +74,11 @@ Here are the available commands you can use with the bot:
 - **`!price [ticker]`**
   - **Description**: Fetch the current or most recent stock price plus the daily change in dollars and percent.
   - **Example**: `!price AAPL`
+
+- **`!chart [ticker] [period]`**
+  - **Description**: Generate a dark mode price chart image for a ticker. Period is optional (default `1d`).
+  - **Valid Periods**: `1d`, `5d`, `1mo`, `3mo`, `6mo`, `1y`, `2y`, `5y`, `max`
+  - **Example**: `!chart TSLA 6mo`
 
 - **`!rsa [ticker] [split ratio]`**
   - **Description**: Estimate the profitability of reverse split arbitrage.

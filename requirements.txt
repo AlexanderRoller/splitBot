@@ -2,3 +2,4 @@ discord.py
 yfinance
 psutil
 python-dotenv
+matplotlib

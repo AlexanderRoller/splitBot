@@ -103,3 +103,50 @@ def get_price_snapshot(ticker: str):
             pass
 
     return last_price, previous_close
+
+
+def get_price_history(ticker: str, period: str = "3mo", interval: str = "1d"):
+    stock = _get_stock(ticker)
+    if stock is None:
+        return None, None
+
+    try:
+        history = stock.history(period=period, interval=interval)
+        if history is None or history.empty:
+            return None, None
+
+        close_values = history["Close"].dropna()
+        if close_values.empty:
+            return None, None
+
+        timestamps = close_values.index.to_pydatetime().tolist()
+        prices = [float(value) for value in close_values.tolist()]
+        if not timestamps or not prices:
+            return None, None
+        return timestamps, prices
+    except Exception:
+        return None, None
+
+
+def get_company_name(ticker: str):
+    ticker_key = ticker.upper().strip()
+    stock = _get_stock(ticker_key)
+    if stock is None:
+        return ticker_key
+
+    try:
+        info = stock.info or {}
+        company_name = (
+            info.get("longName")
+            or info.get("shortName")
+            or info.get("displayName")
+            or info.get("name")
+        )
+        if company_name:
+            cleaned_name = str(company_name).strip()
+            if cleaned_name:
+                return cleaned_name
+    except Exception:
+        pass
+
+    return ticker_key
