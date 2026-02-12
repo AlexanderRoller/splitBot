@@ -6,6 +6,7 @@ This Discord bot provides lightweight financial utilities to help users stay inf
 
 - **📈 Live Stock Price Fetching**: Retrieve the most up-to-date stock prices during market hours, or the last available price after hours using the `yfinance` API.
 - **📉 Dark Mode Stock Charts**: Generate and post dark-themed stock charts directly in Discord.
+- **📣 Reverse Split Post Channels**: Create a new category channel for a split alert and auto-post an `@everyone` announcement.
 - **🔁 Reverse Split Arbitrage**: Estimate profitability based on a specified reverse split ratio and the latest market price.
 - **🖥️ Server Health Monitoring**: Track CPU usage, memory usage, disk usage, uptime, and component temperatures.
 - **👥 User Count**: Return the number of users currently in the Discord server.
@@ -49,9 +50,13 @@ To get started, follow these steps:
 
    ```plaintext
    BOT_TOKEN=your_discord_bot_token
+   POST_CATEGORY_ID=your_target_category_id
+   POST_MODERATOR_ROLE_ID=123456789012345678
    ```
 
    - **BOT_TOKEN**: The token for your Discord bot.
+   - **POST_CATEGORY_ID**: Category ID where `!post` creates new channels.
+   - **POST_MODERATOR_ROLE_ID**: Exact role ID allowed to run `!post`.
 
 ---
 
@@ -71,6 +76,10 @@ The bot will immediately connect to Discord and respond to commands in your serv
 
 Here are the available commands you can use with the bot:
 
+- **`!help [command]`**
+  - **Description**: Shows command usage and examples. Use `!help` for all commands or `!help chart` for one command.
+  - **Example**: `!help post`
+
 - **`!price [ticker]`**
   - **Description**: Fetch the current or most recent stock price plus the daily change in dollars and percent.
   - **Example**: `!price AAPL`
@@ -79,6 +88,13 @@ Here are the available commands you can use with the bot:
   - **Description**: Generate a dark mode price chart image for a ticker. Period is optional (default `1d`).
   - **Valid Periods**: `1d`, `5d`, `1mo`, `3mo`, `6mo`, `1y`, `2y`, `5y`, `max`
   - **Example**: `!chart TSLA 6mo`
+
+- **`!post [ticker] [split ratio] [last day to buy] [source link]`**
+  - **Description**: Creates a new reverse split channel in the configured category and posts an `@everyone` announcement. Only users with the configured moderator role ID can run this command.
+  - **Date formats**: `YYYY-MM-DD`, `MM/DD/YYYY`, `Mon-DD-YYYY`, `Month DD, YYYY`, `MM/DD`, `Mon-DD` (and close variants).
+  - **Displayed date**: `Mon D` (example: `Feb 12`)
+  - **Channel format**: `⏰-ticker-mon-day` (example: `⏰-aapl-feb-12`)
+  - **Example**: `!post AAPL 1:10 2026-02-20 https://example.com/source`
 
 - **`!rsa [ticker] [split ratio]`**
   - **Description**: Estimate the profitability of reverse split arbitrage.

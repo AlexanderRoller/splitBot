@@ -9,6 +9,18 @@ from dotenv import load_dotenv
 from commands.chart import generate_stock_chart
 from commands.formatting import format_error, format_response
 from commands.health import get_server_status
+from commands.help_data import (
+    build_command_help_lines,
+    build_help_overview_lines,
+    normalize_help_command_name,
+)
+from commands.post import (
+    SUPPORTED_DATE_FORMATS,
+    build_post_channel_name,
+    build_reverse_split_announcement,
+    has_post_permission,
+    parse_last_day_to_buy,
+)
 from commands.price import get_stock_price
 from commands.rsa import calculate_reverse_split_arbitrage
 from commands.test import test_all
@@ -18,6 +30,19 @@ load_dotenv()
 
 # Retrieve sensitive information from environment variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+POST_CATEGORY_ID_RAW = os.getenv("POST_CATEGORY_ID")
+POST_MODERATOR_ROLE_ID_RAW = os.getenv("POST_MODERATOR_ROLE_ID")
+
+
+def _parse_int(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+POST_CATEGORY_ID = _parse_int(POST_CATEGORY_ID_RAW)
+POST_MODERATOR_ROLE_ID = _parse_int(POST_MODERATOR_ROLE_ID_RAW)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -29,7 +54,7 @@ intents.guilds = True
 intents.message_content = True
 
 # Create the bot object with a command prefix (e.g., '!')
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 
 
 async def _send_command_error(ctx, action):
@@ -40,6 +65,32 @@ async def _send_command_error(ctx, action):
 @bot.event
 async def on_ready():
     logger.info("Logged in as %s", bot.user.name)
+
+
+@bot.command(name="help", help="Shows command usage and examples. Usage: !help [command].")
+async def help_command(ctx, *, command_name: str = ""):
+    normalized_name = normalize_help_command_name(command_name)
+    no_mentions = discord.AllowedMentions.none()
+
+    if not normalized_name:
+        await ctx.send(
+            format_response("Help", build_help_overview_lines()),
+            allowed_mentions=no_mentions,
+        )
+        return
+
+    resolved_name, lines = build_command_help_lines(normalized_name)
+    if lines is None:
+        await ctx.send(
+            format_error("Help", f"Unknown command '{command_name}'. Use `!help` to list commands."),
+            allowed_mentions=no_mentions,
+        )
+        return
+
+    await ctx.send(
+        format_response(f"Help: !{resolved_name}", lines),
+        allowed_mentions=no_mentions,
+    )
 
 
 @bot.command(name="price", help="Gets the current or most recent price of a specified stock ticker.")
@@ -92,6 +143,93 @@ async def chart(ctx, ticker: str, period: str = "1d"):
         if chart_stream is not None:
             chart_stream.close()
 
+
+@bot.command(
+    name="post",
+    help="Creates a reverse split channel and announcement. Usage: !post [ticker] [split_ratio] [last_day_to_buy] [source_link].",
+)
+async def post(ctx, ticker: str, split_ratio: str, last_day_to_buy: str, source_link: str):
+    if ctx.guild is None:
+        await ctx.send(format_error("Post", "This command can only run in a server."))
+        return
+
+    if POST_MODERATOR_ROLE_ID is None:
+        await ctx.send(format_error("Post", "POST_MODERATOR_ROLE_ID is not configured in .env"))
+        return
+
+    if not has_post_permission(ctx.author, POST_MODERATOR_ROLE_ID):
+        await ctx.send(format_error("Post", f"Only users with role ID {POST_MODERATOR_ROLE_ID} can use this command."))
+        return
+
+    if not source_link.startswith(("http://", "https://")):
+        await ctx.send(format_error("Post", "Source link must start with http:// or https://"))
+        return
+
+    if POST_CATEGORY_ID is None:
+        await ctx.send(format_error("Post", "POST_CATEGORY_ID is not configured in .env"))
+        return
+
+    buy_date = parse_last_day_to_buy(last_day_to_buy)
+    if buy_date is None:
+        supported_formats = ", ".join(SUPPORTED_DATE_FORMATS)
+        await ctx.send(
+            format_error(
+                "Post",
+                f"Invalid last_day_to_buy date. Supported formats: {supported_formats}",
+            )
+        )
+        return
+
+    category = ctx.guild.get_channel(POST_CATEGORY_ID)
+    if category is None:
+        try:
+            category = await ctx.guild.fetch_channel(POST_CATEGORY_ID)
+        except discord.DiscordException:
+            category = None
+
+    if not isinstance(category, discord.CategoryChannel):
+        await ctx.send(
+            format_error(
+                "Post",
+                "Configured POST_CATEGORY_ID is missing or is not a category in this server.",
+            )
+        )
+        return
+
+    channel_name = build_post_channel_name(ticker, buy_date)
+    if not channel_name:
+        await ctx.send(format_error("Post", "Invalid ticker for channel name."))
+        return
+
+    reason = f"Reverse split post created by {ctx.author} for {ticker.upper()}"
+    try:
+        new_channel = await category.create_text_channel(channel_name, reason=reason)
+        existing_text_channels = [channel for channel in category.text_channels if channel.id != new_channel.id]
+        if existing_text_channels:
+            top_text_channel = existing_text_channels[0]
+            await new_channel.move(
+                after=top_text_channel,
+                category=category,
+                reason="Place reverse split post second from top",
+            )
+    except discord.DiscordException:
+        await ctx.send(format_error("Post", "Could not create the new channel in the target category."))
+        return
+
+    announcement = build_reverse_split_announcement(ticker, split_ratio, buy_date, source_link)
+    try:
+        await new_channel.send(
+            announcement,
+            allowed_mentions=discord.AllowedMentions(everyone=True),
+        )
+    except discord.DiscordException:
+        await ctx.send(
+            format_error(
+                "Post",
+                f"Created channel {new_channel.mention}, but failed to post announcement.",
+            )
+        )
+        return
 
 @bot.command(name="test_all", help="Tests all bot commands with sample inputs.")
 async def run_all_tests(ctx):
