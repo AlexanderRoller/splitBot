@@ -87,10 +87,9 @@ BurryDeez is a Discord bot for quick stock utilities, chart snapshots, reverse s
 - Displayed date in announcement: `Mon D` (example: `Feb 12`)
 - New channel placement: second from top in the target category
 
-## Bot Instructions Message
+## Bot Help
 
-Running `!help` posts the full welcome/instructions message with examples for every command.
-Running `!help <command>` shows command-specific usage, details, and examples.
+Use `!help` to view the command overview and `!help <command>` for detailed usage/examples.
 
 ## Testing
 

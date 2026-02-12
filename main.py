@@ -11,7 +11,7 @@ from commands.formatting import format_error, format_response
 from commands.health import get_server_status
 from commands.help_data import (
     build_command_help_lines,
-    build_instructions_message,
+    build_help_overview_lines,
     normalize_help_command_name,
 )
 from commands.post import (
@@ -73,7 +73,10 @@ async def help_command(ctx, *, command_name: str = ""):
     no_mentions = discord.AllowedMentions.none()
 
     if not normalized_name:
-        await ctx.send(build_instructions_message(), allowed_mentions=no_mentions)
+        await ctx.send(
+            format_response("Help", build_help_overview_lines()),
+            allowed_mentions=no_mentions,
+        )
         return
 
     resolved_name, lines = build_command_help_lines(normalized_name)
@@ -124,16 +127,27 @@ async def rsa(ctx, ticker: str, split_ratio: str):
 async def chart(ctx, ticker: str, period: str = "1d"):
     chart_stream = None
     try:
-        chart_stream, filename, caption, error_message = await asyncio.to_thread(
-            generate_stock_chart,
-            ticker,
-            period,
-        )
+        async with ctx.typing():
+            chart_stream, filename, caption, error_message = await asyncio.wait_for(
+                asyncio.to_thread(
+                    generate_stock_chart,
+                    ticker,
+                    period,
+                ),
+                timeout=25,
+            )
         if error_message:
             await ctx.send(error_message)
             return
 
         await ctx.send(content=caption, file=discord.File(fp=chart_stream, filename=filename))
+    except asyncio.TimeoutError:
+        await ctx.send(
+            format_error(
+                "Chart",
+                "Timed out while generating chart data. Try again in a moment.",
+            )
+        )
     except Exception:
         await _send_command_error(ctx, "Chart")
     finally:
