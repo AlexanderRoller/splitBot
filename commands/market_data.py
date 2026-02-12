@@ -1,8 +1,20 @@
-import yfinance as yf
+try:
+    import yfinance as yf
+except ModuleNotFoundError:
+    yf = None
+
+
+def _get_stock(ticker: str):
+    if yf is None:
+        return None
+    return yf.Ticker(ticker)
 
 
 def get_latest_price(ticker: str):
-    stock = yf.Ticker(ticker)
+    stock = _get_stock(ticker)
+    if stock is None:
+        return None
+
     price = None
 
     try:
@@ -39,7 +51,10 @@ def get_latest_price(ticker: str):
 
 
 def get_price_snapshot(ticker: str):
-    stock = yf.Ticker(ticker)
+    stock = _get_stock(ticker)
+    if stock is None:
+        return None, None
+
     last_price = None
     previous_close = None
 

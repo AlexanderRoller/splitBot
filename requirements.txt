@@ -2,5 +2,3 @@ discord.py
 yfinance
 psutil
 python-dotenv
-requests
-beautifulsoup4
