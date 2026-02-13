@@ -14,7 +14,7 @@ BurryDeez is a Discord bot for quick stock utilities, chart snapshots, reverse s
 
 ## Requirements
 
-- Python 3.8+
+- Python 3.11 or 3.12 recommended for best runtime stability
 - A Discord bot token from the [Discord Developer Portal](https://discord.com/developers/applications)
 - Packages in `requirements.txt`:
   - `discord.py`
@@ -44,6 +44,10 @@ BurryDeez is a Discord bot for quick stock utilities, chart snapshots, reverse s
    BOT_TOKEN=your_discord_bot_token
    POST_CATEGORY_ID=your_target_category_id
    POST_MODERATOR_ROLE_ID=123456789012345678
+   # Optional reliability timeouts (seconds)
+   COMMAND_TIMEOUT_SECONDS=20
+   CHART_TIMEOUT_SECONDS=25
+   TEST_ALL_TIMEOUT_SECONDS=120
    ```
 
 4. Run the bot:
@@ -59,6 +63,9 @@ BurryDeez is a Discord bot for quick stock utilities, chart snapshots, reverse s
 | `BOT_TOKEN` | Yes | Discord bot token. |
 | `POST_CATEGORY_ID` | Yes for `!post` | Category where `!post` creates channels. |
 | `POST_MODERATOR_ROLE_ID` | Yes for `!post` | Only users with this role ID can run `!post`. |
+| `COMMAND_TIMEOUT_SECONDS` | No | Timeout for blocking data commands like `!price`, `!health`, `!rsa`. Default: `20`. |
+| `CHART_TIMEOUT_SECONDS` | No | Timeout for chart generation in `!chart`. Default: `25`. |
+| `TEST_ALL_TIMEOUT_SECONDS` | No | Timeout for `!test_all`. Default: `120`. |
 
 ## Command Reference
 
@@ -90,6 +97,14 @@ BurryDeez is a Discord bot for quick stock utilities, chart snapshots, reverse s
 ## Bot Help
 
 Use `!help` to view the command overview and `!help <command>` for detailed usage/examples.
+
+## Reliability Notes
+
+- Keep the host awake. If the machine sleeps, Discord sessions are dropped and reconnected.
+- Use stable network (prefer wired Ethernet for always-on bots).
+- Run one token per bot process. Reusing the same token in multiple processes causes session churn.
+- Use a process supervisor (`launchd`, `systemd`, `pm2`, or Docker restart policy) so crashes/restarts recover automatically.
+- If logs show repeated "Can't keep up ... websocket is Xs behind", the host event loop is being starved or paused.
 
 ## Testing
 
