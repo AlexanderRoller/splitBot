@@ -18,3 +18,5 @@ venv/
 commands/__pycache__
 data*
 tokens*
+logs/
+.venv/
