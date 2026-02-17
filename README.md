@@ -1,6 +1,6 @@
-# BurryDeez Discord Bot
+# splitBot (formerly BurryDeez)
 
-BurryDeez is a Discord bot for quick stock utilities, chart snapshots, reverse split workflows, and basic server diagnostics.
+splitBot is a Discord bot for quick stock utilities, chart snapshots, reverse split workflows, and basic server diagnostics.
 
 ## Features
 
@@ -29,7 +29,7 @@ BurryDeez is a Discord bot for quick stock utilities, chart snapshots, reverse s
 
    ```bash
    git clone https://github.com/AlexanderRoller/BurryDeez.git
-   cd BurryDeez
+   cd BurryDeez  # (repo rename to splitBot pending)
    ```
 
 2. Install dependencies:
@@ -116,5 +116,5 @@ python -m unittest discover -q
 
 ## Open Source
 
-**Burry Deez Bot is open-source.**  
-Repository: **[Burry Deez GitHub](https://github.com/AlexanderRoller/BurryDeez)**
+**splitBot is open-source.**  
+Repository: **<https://github.com/AlexanderRoller/BurryDeez>** (repo rename to `splitBot` pending)
