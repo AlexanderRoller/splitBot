@@ -128,6 +128,35 @@ def get_price_history(ticker: str, period: str = "3mo", interval: str = "1d"):
         return None, None
 
 
+def get_ohlc_history(ticker: str, period: str = "3mo", interval: str = "1d"):
+    """Return OHLCV dataframe from yfinance history.
+
+    Expected columns: Open, High, Low, Close (Volume optional).
+    Returns None if data unavailable.
+    """
+
+    stock = _get_stock(ticker)
+    if stock is None:
+        return None
+
+    try:
+        history = stock.history(period=period, interval=interval)
+        if history is None or history.empty:
+            return None
+
+        keep_cols = [col for col in ("Open", "High", "Low", "Close", "Volume") if col in history.columns]
+        if not keep_cols:
+            return None
+
+        frame = history[keep_cols].dropna(how="any")
+        if frame.empty:
+            return None
+
+        return frame
+    except Exception:
+        return None
+
+
 def get_company_name(ticker: str):
     ticker_key = ticker.upper().strip()
     stock = _get_stock(ticker_key)
