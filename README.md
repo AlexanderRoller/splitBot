@@ -28,8 +28,8 @@ splitBot is a Discord bot for quick stock utilities, chart snapshots, reverse sp
 1. Clone the repo:
 
    ```bash
-   git clone https://github.com/AlexanderRoller/BurryDeez.git
-   cd BurryDeez  # (repo rename to splitBot pending)
+   git clone https://github.com/AlexanderRoller/splitBot.git
+   cd BurryDeez  # local folder name (optional: rename folder to splitBot)
    ```
 
 2. Install dependencies:
@@ -117,4 +117,4 @@ python -m unittest discover -q
 ## Open Source
 
 **splitBot is open-source.**  
-Repository: **<https://github.com/AlexanderRoller/BurryDeez>** (repo rename to `splitBot` pending)
+Repository: **<https://github.com/AlexanderRoller/splitBot>**
