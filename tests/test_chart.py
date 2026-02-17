@@ -69,6 +69,39 @@ class StockChartTests(unittest.TestCase):
     @unittest.skipIf(chart.plt is None or chart.mpf is None, "chart deps not installed in test environment")
     @patch("commands.chart.get_company_name", return_value="Apple Inc.")
     @patch("commands.chart.get_ohlc_history")
+    def test_intraday_uses_time_in_xaxis_format(self, mock_history, _mock_company_name):
+        import pandas as pd
+
+        # Two points on the same date: x-axis must include time or all ticks look identical.
+        index = pd.to_datetime([
+            dt.datetime(2025, 2, 17, 9, 30),
+            dt.datetime(2025, 2, 17, 10, 0),
+        ])
+        frame = pd.DataFrame(
+            {
+                "Open": [100.0, 101.0],
+                "High": [102.0, 103.0],
+                "Low": [99.0, 100.0],
+                "Close": [100.0, 101.0],
+            },
+            index=index,
+        )
+        mock_history.return_value = frame
+
+        with patch.object(chart.mpf, "plot", wraps=chart.mpf.plot) as wrapped_plot:
+            stream, _filename, _caption, error_message = chart.generate_stock_chart("AAPL", "1d")
+            try:
+                self.assertIsNone(error_message)
+                self.assertTrue(wrapped_plot.called)
+                kwargs = wrapped_plot.call_args.kwargs
+                self.assertEqual(kwargs.get("datetime_format"), "%H:%M")
+            finally:
+                if stream is not None:
+                    stream.close()
+
+    @unittest.skipIf(chart.plt is None or chart.mpf is None, "chart deps not installed in test environment")
+    @patch("commands.chart.get_company_name", return_value="Apple Inc.")
+    @patch("commands.chart.get_ohlc_history")
     def test_default_period_is_1d(self, mock_history, _mock_company_name):
         import pandas as pd
 

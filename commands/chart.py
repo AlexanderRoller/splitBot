@@ -106,6 +106,18 @@ def generate_stock_chart(ticker: str, period: str = DEFAULT_PERIOD):
             },
         )
 
+        interval = PERIOD_TO_INTERVAL[period_key]
+        if interval.endswith("m") or interval.endswith("h"):
+            # Intraday data needs time on the x-axis; otherwise every tick shows the same date.
+            datetime_format = "%H:%M"
+            if period_key != "1d":
+                datetime_format = "%b %d %H:%M"
+        elif interval.endswith("d") or interval.endswith("wk"):
+            datetime_format = "%b %d"
+        else:
+            # Monthly-ish / fallback.
+            datetime_format = "%Y-%m"
+
         figure, _axes = mpf.plot(
             ohlc,
             type="candle",
@@ -114,7 +126,7 @@ def generate_stock_chart(ticker: str, period: str = DEFAULT_PERIOD):
             figsize=(10, 4.8),
             returnfig=True,
             xrotation=0,
-            datetime_format="%b %d",
+            datetime_format=datetime_format,
             tight_layout=True,
             title=f"{display_name} ({period_key})",
         )
