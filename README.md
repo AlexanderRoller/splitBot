@@ -1,62 +1,104 @@
-# splitBot (formerly BurryDeez)
+# splitBot
 
-splitBot is a Discord bot for quick stock utilities, chart snapshots, reverse split workflows, and basic server diagnostics.
+A Discord bot for quick stock utilities, chart snapshots, reverse split workflows, and basic server diagnostics.
+
+> This project was previously named **BurryDeez**. The GitHub repo has been renamed to **splitBot**.
 
 ## Features
 
-- `!price`: live/recent stock price + daily change
-- `!chart`: dark mode chart image for a ticker
-- `!rsa`: reverse split arbitrage estimate
-- `!post`: moderator-only reverse split channel creation + announcement
-- `!health`: server health summary
-- `!usercount`: total member count
-- `!help`: instruction message + command-specific help
+- `!price` — live/recent stock price + daily change
+- `!chart` — dark mode chart image for a ticker
+- `!rsa` — reverse split arbitrage estimate
+- `!post` — moderator-only reverse split channel creation + announcement
+- `!health` — server health summary
+- `!usercount` — total member count
+- `!help` — instruction message + command-specific help
 
 ## Requirements
 
-- Python 3.11 or 3.12 recommended for best runtime stability
-- A Discord bot token from the [Discord Developer Portal](https://discord.com/developers/applications)
-- Packages in `requirements.txt`:
-  - `discord.py`
-  - `yfinance`
-  - `psutil`
-  - `python-dotenv`
-  - `matplotlib`
+- **Python 3.11+** (Python **3.12 recommended**)
+- A Discord bot token from the Discord Developer Portal
+- Network access from the host running the bot
 
-## Quick Start
+Python dependencies are listed in `requirements.txt`.
 
-1. Clone the repo:
+## Quick start (macOS / Linux)
 
-   ```bash
-   git clone https://github.com/AlexanderRoller/splitBot.git
-   cd BurryDeez  # local folder name (optional: rename folder to splitBot)
-   ```
+1) Clone the repo
 
-2. Install dependencies:
+```bash
+git clone https://github.com/AlexanderRoller/splitBot.git
+cd splitBot
+```
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+2) Create a virtual environment + install deps
 
-3. Create `.env` in the project root:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
 
-   ```dotenv
-   BOT_TOKEN=your_discord_bot_token
-   POST_CATEGORY_ID=your_target_category_id
-   POST_MODERATOR_ROLE_ID=123456789012345678
-   # Optional reliability timeouts (seconds)
-   COMMAND_TIMEOUT_SECONDS=20
-   CHART_TIMEOUT_SECONDS=25
-   TEST_ALL_TIMEOUT_SECONDS=120
-   ```
+3) Create a `.env`
 
-4. Run the bot:
+```dotenv
+# required
+BOT_TOKEN=your_discord_bot_token
 
-   ```bash
-   python main.py
-   ```
+# required for !post
+POST_CATEGORY_ID=123456789012345678
+POST_MODERATOR_ROLE_ID=123456789012345678
 
-## Environment Variables
+# optional timeouts (seconds)
+COMMAND_TIMEOUT_SECONDS=20
+CHART_TIMEOUT_SECONDS=25
+TEST_ALL_TIMEOUT_SECONDS=120
+```
+
+4) Run
+
+```bash
+python main.py
+```
+
+## Quick start (Windows PowerShell)
+
+```powershell
+git clone https://github.com/AlexanderRoller/splitBot.git
+cd splitBot
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python main.py
+```
+
+## Discord bot setup notes
+
+In the Discord Developer Portal:
+
+- Enable **Message Content Intent** (this bot uses `!commands`, so it needs message content).
+- Invite the bot to your server with permissions to:
+  - Read messages / read message history
+  - Send messages
+  - Attach files (for `!chart` images)
+  - Manage channels (only if you will use `!post`)
+
+## Running as a service (recommended)
+
+If you want splitBot to restart automatically after reboots/crashes, run it under a process supervisor.
+
+### macOS (launchd)
+
+This repo includes a LaunchAgent plist and start script:
+
+- `deploy/macos/com.lex.splitbot.plist`
+- `scripts/start_splitbot.sh`
+
+See: `deploy/macos/README.md`
+
+## Environment variables
 
 | Variable | Required | Description |
 |---|---|---|
@@ -67,7 +109,7 @@ splitBot is a Discord bot for quick stock utilities, chart snapshots, reverse sp
 | `CHART_TIMEOUT_SECONDS` | No | Timeout for chart generation in `!chart`. Default: `25`. |
 | `TEST_ALL_TIMEOUT_SECONDS` | No | Timeout for `!test_all`. Default: `120`. |
 
-## Command Reference
+## Command reference
 
 | Command | Description | Example |
 |---|---|---|
@@ -80,7 +122,7 @@ splitBot is a Discord bot for quick stock utilities, chart snapshots, reverse sp
 | `!usercount` | Shows total server members. | `!usercount` |
 | `!test_all` | Runs sample checks for key commands. | `!test_all` |
 
-## `!post` Behavior
+## `!post` behavior
 
 - Access control: role ID only (`POST_MODERATOR_ROLE_ID`)
 - Channel naming: `⏰-ticker-mon-day` (example: `⏰-aapl-feb-12`)
@@ -94,27 +136,18 @@ splitBot is a Discord bot for quick stock utilities, chart snapshots, reverse sp
 - Displayed date in announcement: `Mon D` (example: `Feb 12`)
 - New channel placement: second from top in the target category
 
-## Bot Help
-
-Use `!help` to view the command overview and `!help <command>` for detailed usage/examples.
-
-## Reliability Notes
-
-- Keep the host awake. If the machine sleeps, Discord sessions are dropped and reconnected.
-- Use stable network (prefer wired Ethernet for always-on bots).
-- Run one token per bot process. Reusing the same token in multiple processes causes session churn.
-- Use a process supervisor (`launchd`, `systemd`, `pm2`, or Docker restart policy) so crashes/restarts recover automatically.
-- If logs show repeated "Can't keep up ... websocket is Xs behind", the host event loop is being starved or paused.
-
 ## Testing
-
-Run tests with:
 
 ```bash
 python -m unittest discover -q
 ```
 
-## Open Source
+## Troubleshooting
 
-**splitBot is open-source.**  
-Repository: **<https://github.com/AlexanderRoller/splitBot>**
+- If you see missing permission errors for `!post`, ensure the bot role has **Manage Channels** and the configured `POST_CATEGORY_ID` exists.
+- If `!chart` fails on a headless server, ensure matplotlib can render (some environments may require additional system fonts).
+- For always-on usage, prefer a wired connection and a host that does not sleep.
+
+## License
+
+See `LICENSE`.
