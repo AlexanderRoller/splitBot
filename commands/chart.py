@@ -1,7 +1,7 @@
 import io
 
 from commands.formatting import format_error
-from commands.market_data import get_company_name, get_price_history
+from commands.market_data import get_company_name, get_ohlc_history
 
 try:
     import matplotlib
@@ -10,6 +10,11 @@ try:
     import matplotlib.pyplot as plt
 except (ModuleNotFoundError, ImportError):
     plt = None
+
+try:
+    import mplfinance as mpf
+except (ModuleNotFoundError, ImportError):
+    mpf = None
 
 
 PERIOD_TO_INTERVAL = {
@@ -43,12 +48,18 @@ def generate_stock_chart(ticker: str, period: str = DEFAULT_PERIOD):
             "Chart rendering is unavailable. Install matplotlib.",
         )
 
-    timestamps, prices = get_price_history(
+    if mpf is None:
+        return None, None, None, format_error(
+            "Chart",
+            "Chart rendering is unavailable. Install mplfinance.",
+        )
+
+    ohlc = get_ohlc_history(
         ticker_key,
         period=period_key,
         interval=PERIOD_TO_INTERVAL[period_key],
     )
-    if not timestamps or not prices:
+    if ohlc is None or ohlc.empty:
         return None, None, None, format_error(
             "Chart",
             f"Could not retrieve chart data for ticker {ticker_key}.",
@@ -62,29 +73,51 @@ def generate_stock_chart(ticker: str, period: str = DEFAULT_PERIOD):
 
     figure = None
     try:
-        figure, axis = plt.subplots(figsize=(10, 4.8))
-        figure.patch.set_facecolor("#0D1117")
-        axis.set_facecolor("#161B22")
-
-        axis.plot(timestamps, prices, color="#58A6FF", linewidth=2.2)
-        axis.fill_between(timestamps, prices, min(prices), color="#1F6FEB", alpha=0.22)
-        axis.grid(True, color="#30363D", linestyle="--", linewidth=0.7, alpha=0.5)
-
-        for spine in axis.spines.values():
-            spine.set_color("#30363D")
-
-        axis.tick_params(colors="#C9D1D9")
-        axis.set_title(f"{display_name} Price Chart ({period_key})", color="#F0F6FC", pad=12)
-        axis.set_ylabel("Price (USD)", color="#C9D1D9")
-        figure.autofmt_xdate()
-
-        first_price = prices[0]
-        last_price = prices[-1]
+        close_prices = ohlc["Close"].astype(float).tolist()
+        first_price = close_prices[0]
+        last_price = close_prices[-1]
         change_amount = last_price - first_price
         change_percent = 0.0
         if first_price != 0:
             change_percent = (change_amount / first_price) * 100
         sign = "+" if change_amount >= 0 else "-"
+
+        market_colors = mpf.make_marketcolors(
+            up="#26a69a",
+            down="#ef5350",
+            edge={"up": "#26a69a", "down": "#ef5350"},
+            wick={"up": "#26a69a", "down": "#ef5350"},
+            volume="inherit",
+        )
+        style = mpf.make_mpf_style(
+            base_mpf_style="nightclouds",
+            marketcolors=market_colors,
+            facecolor="#0D1117",
+            figcolor="#0D1117",
+            gridcolor="#30363D",
+            gridstyle="--",
+            rc={
+                "axes.labelcolor": "#C9D1D9",
+                "xtick.color": "#C9D1D9",
+                "ytick.color": "#C9D1D9",
+                "axes.edgecolor": "#30363D",
+                "text.color": "#F0F6FC",
+                "font.size": 10,
+            },
+        )
+
+        figure, _axes = mpf.plot(
+            ohlc,
+            type="candle",
+            style=style,
+            volume=False,
+            figsize=(10, 4.8),
+            returnfig=True,
+            xrotation=0,
+            datetime_format="%b %d",
+            tight_layout=True,
+            title=f"{display_name} ({period_key})",
+        )
 
         caption = (
             f"**{display_name} Chart ({period_key})**\n"

@@ -3,3 +3,4 @@ yfinance
 psutil
 python-dotenv
 matplotlib
+mplfinance
