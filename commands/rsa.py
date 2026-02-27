@@ -21,30 +21,40 @@ def _parse_split_ratio(split_ratio: str):
     return denominator / numerator
 
 
-def calculate_reverse_split_arbitrage(ticker: str, split_ratio: str):
+def estimate_reverse_split_profitability(ticker: str, split_ratio: str):
+    """Return (ticker_key, current_price, profitability, error_message)."""
     ticker_key = ticker.upper()
     current_price = get_latest_price(ticker_key)
 
     if current_price is None:
-        return format_error(
-            "Reverse Split Arbitrage",
-            f"Could not retrieve the current price for ticker {ticker_key}.",
+        return None, None, None, (
+            f"Could not retrieve the current price for ticker {ticker_key}."
         )
 
     try:
         split_ratio_value = _parse_split_ratio(split_ratio)
     except ZeroDivisionError:
-        return format_error(
-            "Reverse Split Arbitrage",
-            "Invalid split ratio format. Denominator cannot be zero.",
-        )
+        return None, None, None, "Invalid split ratio format. Denominator cannot be zero."
     except ValueError:
-        return format_error(
-            "Reverse Split Arbitrage",
+        return (
+            None,
+            None,
+            None,
             "Invalid split ratio format. Use 'small:big' with positive numbers (example: 1:10).",
         )
 
     profitability = float(current_price) * (split_ratio_value - 1)
+    return ticker_key, float(current_price), profitability, None
+
+
+def calculate_reverse_split_arbitrage(ticker: str, split_ratio: str):
+    ticker_key, _current_price, profitability, error_message = estimate_reverse_split_profitability(
+        ticker,
+        split_ratio,
+    )
+    if error_message:
+        return format_error("Reverse Split Arbitrage", error_message)
+
     return format_response(
         f"Reverse Split Arbitrage for {ticker_key}",
         [
