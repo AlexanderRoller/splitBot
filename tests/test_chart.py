@@ -18,6 +18,7 @@ class StockChartTests(unittest.TestCase):
         self.assertIsNotNone(error_message)
         self.assertIn("Install matplotlib", error_message)
 
+    @patch("commands.chart.plt", object())
     @patch("commands.chart.mpf", None)
     def test_missing_mplfinance_returns_error(self):
         _stream, _filename, _caption, error_message = chart.generate_stock_chart("AAPL", "1mo")

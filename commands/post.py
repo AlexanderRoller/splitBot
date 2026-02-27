@@ -63,16 +63,27 @@ def build_post_channel_name(ticker: str, buy_date):
     return f"{CLOCK_EMOJI}-{sanitized_ticker}-{month_label}-{day_label}"
 
 
-def build_reverse_split_announcement(ticker: str, split_ratio: str, buy_date, source_link: str):
+def build_reverse_split_announcement(
+    ticker: str,
+    split_ratio: str,
+    buy_date,
+    source_link: str,
+    estimated_profitability: float = None,
+):
     ticker_key = str(ticker or "").strip().upper()
     split_ratio_value = str(split_ratio or "").strip()
     source_url = str(source_link or "").strip()
     buy_date_value = format_buy_date_short(buy_date)
 
+    profitability_line = ""
+    if estimated_profitability is not None:
+        profitability_line = f"Estimated Profitability: ${estimated_profitability:.2f}\n"
+
     return (
         "@everyone\n"
         f"**Reverse Split Alert: {ticker_key}**\n"
         f"Split Ratio: {split_ratio_value}\n"
+        f"{profitability_line}"
         f"Last Day to Buy: {buy_date_value}\n"
         f"Source: {source_url}"
     )

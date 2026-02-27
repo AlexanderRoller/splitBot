@@ -46,10 +46,12 @@ class PostCommandHelperTests(unittest.TestCase):
             "1:10",
             buy_date,
             "https://example.com/source",
+            estimated_profitability=12.34,
         )
         self.assertIn("@everyone", message)
         self.assertIn("Reverse Split Alert: AAPL", message)
         self.assertIn("Split Ratio: 1:10", message)
+        self.assertIn("Estimated Profitability: $12.34", message)
         self.assertIn("Last Day to Buy: Feb 12", message)
         self.assertIn("Source: https://example.com/source", message)
 

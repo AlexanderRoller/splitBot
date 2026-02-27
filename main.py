@@ -23,7 +23,7 @@ from commands.post import (
     parse_last_day_to_buy,
 )
 from commands.price import get_stock_price
-from commands.rsa import calculate_reverse_split_arbitrage
+from commands.rsa import calculate_reverse_split_arbitrage, estimate_reverse_split_profitability
 from commands.test import test_all
 
 # Load environment variables from .env file
@@ -340,7 +340,24 @@ async def post(ctx, ticker: str, split_ratio: str, last_day_to_buy: str, source_
         await ctx.send(format_error("Post", "Could not create the new channel in the target category."))
         return
 
-    announcement = build_reverse_split_announcement(ticker, split_ratio, buy_date, source_link)
+    estimated_profitability = None
+    try:
+        _ticker_key, _current_price, estimated_profitability, _error_message = await asyncio.wait_for(
+            asyncio.to_thread(estimate_reverse_split_profitability, ticker, split_ratio),
+            timeout=COMMAND_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError:
+        estimated_profitability = None
+    except Exception:
+        estimated_profitability = None
+
+    announcement = build_reverse_split_announcement(
+        ticker,
+        split_ratio,
+        buy_date,
+        source_link,
+        estimated_profitability=estimated_profitability,
+    )
     try:
         await new_channel.send(
             announcement,
